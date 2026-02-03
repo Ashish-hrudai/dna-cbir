@@ -1,0 +1,422 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA-CBIR: Content-Based Image Retrieval System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧬 DNA-CBIR System</h1>
+            <p class="subtitle">DNA Translation Inspired Content-Based Image Retrieval</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('search')">Image Search</button>
+                <button class="tab-btn" onclick="switchTab('analyze')">DNA Analysis</button>
+                <button class="tab-btn" onclick="switchTab('compare')">Metric Comparison</button>
+                <button class="tab-btn" onclick="switchTab('database')">Database</button>
+            </div>
+
+            <!-- Search Tab -->
+            <div id="search-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Search Similar Images</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="query-upload" accept="image/*" onchange="handleQueryUpload(event)">
+                            📤 Upload Query Image
+                        </label>
+                    </div>
+
+                    <div id="query-preview" class="image-preview" style="display: none;">
+                        <h3>Query Image</h3>
+                        <img id="query-img" alt="Query">
+                    </div>
+
+                    <div class="search-options">
+                        <div class="option-group">
+                            <label>Model Type:</label>
+                            <select id="model-type">
+                                <option value="instance">Instance-Based (Model I)</option>
+                                <option value="class" disabled>Class-Based (Model II) - Requires Training</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Similarity Metric:</label>
+                            <select id="similarity-metric">
+                                <option value="weighted">Weighted (Multi-Metric)</option>
+                                <option value="euclidean">Euclidean Distance</option>
+                                <option value="cosine">Cosine Similarity</option>
+                                <option value="chi_square">Chi-Square Distance</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Top K Results:</label>
+                            <input type="number" id="top-k" value="10" min="1" max="50">
+                        </div>
+
+                        <div class="option-group">
+                            <label>
+                                <input type="checkbox" id="multi-scale">
+                                Use Multi-Scale Features (IDEA 2)
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="search-btn" onclick="performSearch()" id="search-btn" disabled>
+                        🔍 Search Similar Images
+                    </button>
+
+                    <div id="search-results" class="results-container" style="display: none;">
+                        <h3>Search Results</h3>
+                        <div id="results-grid" class="results-grid"></div>
+                    </div>
+
+                    <div id="loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Processing...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tab -->
+            <div id="analyze-tab" class="tab-content">
+                <div class="card">
+                    <h2>DNA Feature Analysis</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="analyze-upload" accept="image/*" onchange="handleAnalyzeUpload(event)">
+                            📤 Upload Image to Analyze
+                        </label>
+                    </div>
+
+                    <div id="analyze-preview" class="image-preview" style="display: none;">
+                        <img id="analyze-img" alt="Analyze">
+                    </div>
+
+                    <button class="search-btn" onclick="analyzeImage()" id="analyze-btn" disabled>
+                        🔬 Analyze DNA Features
+                    </button>
+
+                    <div id="analysis-results" class="analysis-results" style="display: none;">
+                        <h3>DNA Encoding Statistics</h3>
+                        <div id="dna-stats"></div>
+                        <div id="dna-sequence"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric Comparison Tab -->
+            <div id="compare-tab" class="tab-content">
+                <div class="card">
+                    <h2>Similarity Metric Comparison (IDEA 3)</h2>
+                    <p class="info-text">Compare retrieval results using different similarity metrics</p>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="compare-upload" accept="image/*" onchange="handleCompareUpload(event)">
+                            📤 Upload Query Image
+                        </label>
+                    </div>
+
+                    <div id="compare-preview" class="image-preview" style="display: none;">
+                        <img id="compare-img" alt="Compare">
+                    </div>
+
+                    <div class="option-group">
+                        <label>Top K Results:</label>
+                        <input type="number" id="compare-k" value="5" min="1" max="20">
+                    </div>
+
+                    <button class="search-btn" onclick="compareMetrics()" id="compare-btn" disabled>
+                        📊 Compare Metrics
+                    </button>
+
+                    <div id="comparison-results" class="comparison-results" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Database Tab -->
+            <div id="database-tab" class="tab-content">
+                <div class="card">
+                    <h2>Image Database Management</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="database-upload" accept="image/*" multiple onchange="handleDatabaseUpload(event)">
+                            📤 Upload Images to Database
+                        </label>
+                    </div>
+
+                    <button class="search-btn" onclick="loadDatabaseImages()">
+                        🔄 Refresh Database
+                    </button>
+
+                    <div id="database-list" class="database-list">
+                        <h3>Database Images (<span id="db-count">0</span>)</h3>
+                        <div id="database-grid" class="results-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>DNA-CBIR: DNA Translation Inspired Codon Pattern-Based Deep Image Feature Extraction</p>
+            <p class="small">Implements multi-scale MSB features, multiple similarity metrics, and codon-based encoding</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA-CBIR: Content-Based Image Retrieval System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧬 DNA-CBIR System</h1>
+            <p class="subtitle">DNA Translation Inspired Content-Based Image Retrieval</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('search')">Image Search</button>
+                <button class="tab-btn" onclick="switchTab('analyze')">DNA Analysis</button>
+                <button class="tab-btn" onclick="switchTab('compare')">Metric Comparison</button>
+                <button class="tab-btn" onclick="switchTab('model2')">Model II Training</button>
+                <button class="tab-btn" onclick="switchTab('database')">Database</button>
+            </div>
+
+            <!-- Search Tab -->
+            <div id="search-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Search Similar Images</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="query-upload" accept="image/*" onchange="handleQueryUpload(event)">
+                            📤 Upload Query Image
+                        </label>
+                    </div>
+
+                    <div id="query-preview" class="image-preview" style="display: none;">
+                        <h3>Query Image</h3>
+                        <img id="query-img" alt="Query">
+                    </div>
+
+                    <div class="search-options">
+                        <div class="option-group">
+                            <label>Model Type:</label>
+                            <select id="model-type">
+                                <option value="instance">Instance-Based (Model I)</option>
+                                <option value="class" id="model2-option">Class-Based (Model II)</option>
+                            </select>
+                            <small id="model2-status" style="color: #e74c3c;"></small>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Similarity Metric:</label>
+                            <select id="similarity-metric">
+                                <option value="weighted">Weighted (Multi-Metric)</option>
+                                <option value="euclidean">Euclidean Distance</option>
+                                <option value="cosine">Cosine Similarity</option>
+                                <option value="chi_square">Chi-Square Distance</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Top K Results:</label>
+                            <input type="number" id="top-k" value="10" min="1" max="50">
+                        </div>
+
+                        <div class="option-group">
+                            <label>
+                                <input type="checkbox" id="multi-scale">
+                                Use Multi-Scale Features (IDEA 2)
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="search-btn" onclick="performSearch()" id="search-btn" disabled>
+                        🔍 Search Similar Images
+                    </button>
+
+                    <div id="search-results" class="results-container" style="display: none;">
+                        <h3>Search Results</h3>
+                        <div id="results-grid" class="results-grid"></div>
+                    </div>
+
+                    <div id="loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Processing...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tab -->
+            <div id="analyze-tab" class="tab-content">
+                <div class="card">
+                    <h2>DNA Feature Analysis</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="analyze-upload" accept="image/*" onchange="handleAnalyzeUpload(event)">
+                            📤 Upload Image to Analyze
+                        </label>
+                    </div>
+
+                    <div id="analyze-preview" class="image-preview" style="display: none;">
+                        <img id="analyze-img" alt="Analyze">
+                    </div>
+
+                    <button class="search-btn" onclick="analyzeImage()" id="analyze-btn" disabled>
+                        🔬 Analyze DNA Features
+                    </button>
+
+                    <div id="analysis-results" class="analysis-results" style="display: none;">
+                        <h3>DNA Encoding Statistics</h3>
+                        <div id="dna-stats"></div>
+                        <div id="dna-sequence"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric Comparison Tab -->
+            <div id="compare-tab" class="tab-content">
+                <div class="card">
+                    <h2>Similarity Metric Comparison (IDEA 3)</h2>
+                    <p class="info-text">Compare retrieval results using different similarity metrics</p>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="compare-upload" accept="image/*" onchange="handleCompareUpload(event)">
+                            📤 Upload Query Image
+                        </label>
+                    </div>
+
+                    <div id="compare-preview" class="image-preview" style="display: none;">
+                        <img id="compare-img" alt="Compare">
+                    </div>
+
+                    <div class="option-group">
+                        <label>Top K Results:</label>
+                        <input type="number" id="compare-k" value="5" min="1" max="20">
+                    </div>
+
+                    <button class="search-btn" onclick="compareMetrics()" id="compare-btn" disabled>
+                        📊 Compare Metrics
+                    </button>
+
+                    <div id="comparison-results" class="comparison-results" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Model II Training Tab -->
+            <div id="model2-tab" class="tab-content">
+                <div class="card">
+                    <h2>Model II: Class-Based CBIR Training</h2>
+                    <p class="info-text">Train deep learning model for class-based image retrieval</p>
+                    
+                    <div class="model2-status-section">
+                        <h3>Model Status</h3>
+                        <div id="model2-current-status">
+                            <p>Checking model status...</p>
+                        </div>
+                    </div>
+
+                    <div class="training-options">
+                        <h3>Training Configuration</h3>
+                        
+                        <div class="option-group">
+                            <label>Architecture:</label>
+                            <select id="train-architecture">
+                                <option value="resnet50">ResNet-50</option>
+                                <option value="vgg16">VGG-16</option>
+                                <option value="vgg19">VGG-19</option>
+                                <option value="inception_v3">Inception V3</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Number of Epochs:</label>
+                            <input type="number" id="train-epochs" value="10" min="1" max="100">
+                        </div>
+
+                        <div class="option-group">
+                            <label>Batch Size:</label>
+                            <input type="number" id="train-batch" value="32" min="8" max="128" step="8">
+                        </div>
+
+                        <div class="option-group">
+                            <label>Learning Rate:</label>
+                            <input type="number" id="train-lr" value="0.001" min="0.0001" max="0.1" step="0.0001">
+                        </div>
+                    </div>
+
+                    <button class="search-btn" onclick="trainModel2()" id="train-btn">
+                        🚀 Train Model II
+                    </button>
+
+                    <div id="training-progress" class="training-progress" style="display: none;">
+                        <h3>Training Progress</h3>
+                        <div class="progress-info" id="progress-info"></div>
+                    </div>
+
+                    <div class="available-models">
+                        <h3>Available Pre-trained Models</h3>
+                        <div id="available-models-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Tab -->
+            <div id="database-tab" class="tab-content">
+                <div class="card">
+                    <h2>Image Database Management</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="database-upload" accept="image/*" multiple onchange="handleDatabaseUpload(event)">
+                            📤 Upload Images to Database
+                        </label>
+                    </div>
+
+                    <button class="search-btn" onclick="loadDatabaseImages()">
+                        🔄 Refresh Database
+                    </button>
+
+                    <div id="database-list" class="database-list">
+                        <h3>Database Images (<span id="db-count">0</span>)</h3>
+                        <div id="database-grid" class="results-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>DNA-CBIR: DNA Translation Inspired Codon Pattern-Based Deep Image Feature Extraction</p>
+            <p class="small">Implements multi-scale MSB features, multiple similarity metrics, and codon-based encoding</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

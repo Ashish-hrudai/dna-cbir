@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.env/
+
+# Flask
+instance/
+uploads/
+database/
+models/
+
+# ML / TensorFlow
+*.h5
+*.ckpt
+
+# OS
+.DS_Store
+Thumbs.db
