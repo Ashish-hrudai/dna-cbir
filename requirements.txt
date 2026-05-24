@@ -4,6 +4,6 @@ numpy
 opencv-python-headless
 Pillow
 scikit-learn
-tensorflow
+tensorflow==2.13.0
 setuptools
 wheel
