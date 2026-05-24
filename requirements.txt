@@ -4,6 +4,6 @@ numpy
 opencv-python-headless
 Pillow
 scikit-learn
-tensorflow-cpu
+tensorflow
 setuptools
 wheel
