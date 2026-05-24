@@ -20,3 +20,11 @@ models/
 # OS
 .DS_Store
 Thumbs.db
+
+venv/
+__pycache__/
+*.pyc
+datasets/
+uploads/
+database/
+models/*.h5
