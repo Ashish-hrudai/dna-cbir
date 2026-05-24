@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA-CBIR: Content-Based Image Retrieval System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧬 DNA-CBIR System</h1>
+            <p class="subtitle">DNA Translation Inspired Content-Based Image Retrieval</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('search')">Image Search</button>
+                <button class="tab-btn" onclick="switchTab('analyze')">DNA Analysis</button>
+                <button class="tab-btn" onclick="switchTab('compare')">Metric Comparison</button>
+              
+                <button class="tab-btn" onclick="switchTab('database')">Database</button>
+            </div>
+
+            <!-- Search Tab -->
+            <div id="search-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Search Similar Images</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="query-upload" accept="image/*" onchange="handleQueryUpload(event)">
+                            📤 Upload Query Image
+                        </label>
+                    </div>
+
+                    <div id="query-preview" class="image-preview" style="display: none;">
+                        <h3>Query Image</h3>
+                        <img id="query-img" alt="Query">
+                    </div>
+
+                    <div class="search-options">
+                        <div class="option-group">
+                            <label>Model Type:</label>
+                            <select id="model-type">
+                                <option value="instance">Instance-Based (Model I)</option>
+                                <option value="class" id="model2-option">Class-Based (Model II)</option>
+                            </select>
+                            <small id="model2-status" style="color: #e74c3c;"></small>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Similarity Metric:</label>
+                            <select id="similarity-metric">
+                                <option value="weighted">Weighted (Multi-Metric)</option>
+                                <option value="euclidean">Euclidean Distance</option>
+                                <option value="cosine">Cosine Similarity</option>
+                                <option value="chi_square">Chi-Square Distance</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Top K Results:</label>
+                            <input type="number" id="top-k" value="10" min="1" max="50">
+                        </div>
+
+                        <div class="option-group">
+                            <label>
+                                <input type="checkbox" id="multi-scale">
+                                Use Multi-Scale Features (IDEA 2)
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="search-btn" onclick="performSearch()" id="search-btn" disabled>
+                        🔍 Search Similar Images
+                    </button>
+
+                    <div id="search-results" class="results-container" style="display: none;">
+                        <h3>Search Results</h3>
+                        <div id="results-grid" class="results-grid"></div>
+                    </div>
+
+                    <div id="loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Processing...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tab -->
+            <div id="analyze-tab" class="tab-content">
+                <div class="card">
+                    <h2>DNA Feature Analysis</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="analyze-upload" accept="image/*" onchange="handleAnalyzeUpload(event)">
+                            📤 Upload Image to Analyze
+                        </label>
+                    </div>
+
+                    <div id="analyze-preview" class="image-preview" style="display: none;">
+                        <img id="analyze-img" alt="Analyze">
+                    </div>
+
+                    <button class="search-btn" onclick="analyzeImage()" id="analyze-btn" disabled>
+                        🔬 Analyze DNA Features
+                    </button>
+
+                    <div id="analysis-results" class="analysis-results" style="display: none;">
+                        <h3>DNA Encoding Statistics</h3>
+                        <div id="dna-stats"></div>
+                        <div id="dna-sequence"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric Comparison Tab -->
+            <div id="compare-tab" class="tab-content">
+                <div class="card">
+                    <h2>Similarity Metric Comparison (IDEA 3)</h2>
+                    <p class="info-text">Compare retrieval results using different similarity metrics</p>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="compare-upload" accept="image/*" onchange="handleCompareUpload(event)">
+                            📤 Upload Query Image
+                        </label>
+                    </div>
+
+                    <div id="compare-preview" class="image-preview" style="display: none;">
+                        <img id="compare-img" alt="Compare">
+                    </div>
+
+                    <div class="option-group">
+                        <label>Top K Results:</label>
+                        <input type="number" id="compare-k" value="5" min="1" max="20">
+                    </div>
+
+                    <button class="search-btn" onclick="compareMetrics()" id="compare-btn" disabled>
+                        📊 Compare Metrics
+                    </button>
+
+                    <div id="comparison-results" class="comparison-results" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Model II Training Tab -->
+            <div id="model2-tab" class="tab-content">
+                <div class="card">
+                    <h2>Model II: Class-Based CBIR Training</h2>
+                    <p class="info-text">Train deep learning model for class-based image retrieval</p>
+                    
+                    <div class="model2-status-section">
+                        <h3>Model Status</h3>
+                        <div id="model2-current-status">
+                            <p>Checking model status...</p>
+                        </div>
+                    </div>
+
+                    <div class="training-options">
+                        <h3>Training Configuration</h3>
+                        
+                        <div class="option-group">
+                            <label>Architecture:</label>
+                            <select id="train-architecture">
+                                <option value="resnet50">ResNet-50</option>
+                                <option value="vgg16">VGG-16</option>
+                                <option value="vgg19">VGG-19</option>
+                                <option value="inception_v3">Inception V3</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Number of Epochs:</label>
+                            <input type="number" id="train-epochs" value="10" min="1" max="100">
+                        </div>
+
+                        <div class="option-group">
+                            <label>Batch Size:</label>
+                            <input type="number" id="train-batch" value="32" min="8" max="128" step="8">
+                        </div>
+
+                        <div class="option-group">
+                            <label>Learning Rate:</label>
+                            <input type="number" id="train-lr" value="0.001" min="0.0001" max="0.1" step="0.0001">
+                        </div>
+                    </div>
+
+                    <button class="search-btn" onclick="trainModel2()" id="train-btn">
+                        🚀 Train Model II
+                    </button>
+
+                    <div id="training-progress" class="training-progress" style="display: none;">
+                        <h3>Training Progress</h3>
+                        <div class="progress-info" id="progress-info"></div>
+                    </div>
+
+                    <div class="available-models">
+                        <h3>Available Pre-trained Models</h3>
+                        <div id="available-models-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Tab -->
+            <div id="database-tab" class="tab-content">
+                <div class="card">
+                    <h2>Image Database Management</h2>
+                    
+                    <div class="upload-section">
+                        <label class="upload-btn">
+                            <input type="file" id="database-upload" accept="image/*" multiple onchange="handleDatabaseUpload(event)">
+                            📤 Upload Images to Database
+                        </label>
+                    </div>
+
+                    <button class="search-btn" onclick="loadDatabaseImages()">
+                        🔄 Refresh Database
+                    </button>
+
+                    <div id="database-list" class="database-list">
+                        <h3>Database Images (<span id="db-count">0</span>)</h3>
+                        <div id="database-grid" class="results-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>DNA-CBIR: DNA Translation Inspired Codon Pattern-Based Deep Image Feature Extraction</p>
+            <p class="small">Implements multi-scale MSB features, multiple similarity metrics, and codon-based encoding</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
+
+<script>
+// Global variables
+let currentQueryFile = null;
+let currentAnalyzeFile = null;
+let currentCompareFile = null;
+
+// Tab switching
+function switchTab(tabName) {
+    // Hide all tabs
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Remove active class from all buttons
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    // Show selected tab
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+
+// Handle query image upload
+async function handleQueryUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentQueryFile = data.filename;
+            
+            // Show preview
+            const preview = document.getElementById('query-preview');
+            const img = document.getElementById('query-img');
+            img.src = `/uploads/${data.filename}`;
+            preview.style.display = 'block';
+            
+            // Enable search button
+            document.getElementById('search-btn').disabled = false;
+        } else {
+            alert('Error uploading file: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('Error uploading file');
+    }
+}
+
+// Perform image search
+async function performSearch() {
+    if (!currentQueryFile) {
+        alert('Please upload a query image first');
+        return;
+    }
+    
+    const modelType = document.getElementById('model-type').value;
+    const similarityMetric = document.getElementById('similarity-metric').value;
+    const topK = parseInt(document.getElementById('top-k').value);
+    const useMultiScale = document.getElementById('multi-scale').checked;
+    
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('search-results').style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query_file: currentQueryFile,
+                model_type: modelType,
+                k: topK,
+                use_multi_scale: useMultiScale,
+                similarity_metric: similarityMetric
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displaySearchResults(data.results);
+        } else {
+            alert('Search error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        alert('Error performing search');
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+// Display search results
+function displaySearchResults(results) {
+    const resultsContainer = document.getElementById('search-results');
+    const resultsGrid = document.getElementById('results-grid');
+    
+    resultsGrid.innerHTML = '';
+    
+    results.forEach((result, index) => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'result-item';
+        
+        resultItem.innerHTML = `
+            <img src="data:image/png;base64,${result.image}" alt="${result.filename}">
+            <div class="result-info">
+                <h4>Rank ${index + 1}</h4>
+                <span class="result-score">Score: ${result.score.toFixed(4)}</span>
+                <p style="font-size: 0.8em; margin-top: 5px; color: #7f8c8d;">${result.filename}</p>
+            </div>
+        `;
+        
+        resultsGrid.appendChild(resultItem);
+    });
+    
+    resultsContainer.style.display = 'block';
+}
+
+// Handle analyze image upload
+async function handleAnalyzeUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentAnalyzeFile = data.filename;
+            
+            // Show preview
+            const preview = document.getElementById('analyze-preview');
+            const img = document.getElementById('analyze-img');
+            img.src = `/uploads/${data.filename}`;
+            preview.style.display = 'block';
+            
+            // Enable analyze button
+            document.getElementById('analyze-btn').disabled = false;
+        } else {
+            alert('Error uploading file: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('Error uploading file');
+    }
+}
+
+// Analyze image
+async function analyzeImage() {
+    if (!currentAnalyzeFile) {
+        alert('Please upload an image first');
+        return;
+    }
+    
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('analysis-results').style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                filename: currentAnalyzeFile
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayAnalysisResults(data);
+        } else {
+            alert('Analysis error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Analysis error:', error);
+        alert('Error analyzing image');
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+// Display analysis results
+function displayAnalysisResults(data) {
+    const statsDiv = document.getElementById('dna-stats');
+    const sequenceDiv = document.getElementById('dna-sequence');
+    
+    const stats = data.dna_stats;
+ 
+    
+    statsDiv.innerHTML = `
+        <div class="stat-item">
+            <span class="stat-label">Number of Channels:</span>
+            <span class="stat-value">${stats.num_channels}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">DNA Length per Channel:</span>
+            <span class="stat-value">${stats.dna_length_per_channel} nucleotides</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Feature Vector Length:</span>
+            <span class="stat-value">${stats.feature_vector_length}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Multi-Scale Feature Length:</span>
+            <span class="stat-value">${stats.multi_scale_feature_length}</span>
+        </div>
+
+        <div class="stat-item">
+            <span class="stat-label">Image Shape:</span>
+            <span class="stat-value">${data.image_shape.join(' × ')}</span>
+        </div>
+    `;
+    
+    sequenceDiv.innerHTML = `
+        <h4 style="color: #ecf0f1; margin-bottom: 10px;">Sample DNA Sequence (first 100 nucleotides):</h4>
+        <code>${data.sample_dna_sequence}</code>
+    `;
+    
+    document.getElementById('analysis-results').style.display = 'block';
+}
+
+// Handle compare image upload
+async function handleCompareUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentCompareFile = data.filename;
+            
+            // Show preview
+            const preview = document.getElementById('compare-preview');
+            const img = document.getElementById('compare-img');
+            img.src = `/uploads/${data.filename}`;
+            preview.style.display = 'block';
+            
+            // Enable compare button
+            document.getElementById('compare-btn').disabled = false;
+        } else {
+            alert('Error uploading file: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('Error uploading file');
+    }
+}
+
+// Compare similarity metrics
+async function compareMetrics() {
+    if (!currentCompareFile) {
+        alert('Please upload a query image first');
+        return;
+    }
+    
+    const topK = parseInt(document.getElementById('compare-k').value);
+    
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('comparison-results').style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/compare-metrics', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query_file: currentCompareFile,
+                k: topK
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayComparisonResults(data.metric_comparisons);
+        } else {
+            alert('Comparison error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Comparison error:', error);
+        alert('Error comparing metrics');
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+// Display comparison results
+function displayComparisonResults(comparisons) {
+    const resultsDiv = document.getElementById('comparison-results');
+    resultsDiv.innerHTML = '';
+    
+    const metrics = ['euclidean', 'cosine', 'chi_square', 'weighted'];
+    const metricNames = {
+        'euclidean': 'Euclidean Distance',
+        'cosine': 'Cosine Similarity',
+        'chi_square': 'Chi-Square Distance',
+        'weighted': 'Weighted Multi-Metric'
+    };
+    
+    metrics.forEach(metric => {
+        const results = comparisons[metric];
+        
+        const metricDiv = document.createElement('div');
+        metricDiv.className = 'metric-comparison';
+        
+        let resultsHTML = `<h4>${metricNames[metric]}</h4><div class="comparison-grid">`;
+        
+        results.forEach((result, index) => {
+            resultsHTML += `
+                <div class="comparison-item">
+                    <p><strong>Rank ${index + 1}</strong></p>
+                    <p style="font-size: 0.85em;">${result.filename}</p>
+                    <p style="color: #3498db; font-weight: 600;">Score: ${result.score.toFixed(4)}</p>
+                </div>
+            `;
+        });
+        
+        resultsHTML += '</div>';
+        metricDiv.innerHTML = resultsHTML;
+        resultsDiv.appendChild(metricDiv);
+    });
+    
+    resultsDiv.style.display = 'block';
+}
+
+// Handle database upload
+async function handleDatabaseUpload(event) {
+    const files = event.target.files;
+    if (files.length === 0) return;
+    
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files[]', files[i]);
+    }
+    
+    try {
+        const response = await fetch('/api/database/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Successfully uploaded ${data.total_uploaded} images`);
+            loadDatabaseImages();
+        } else {
+            alert('Error uploading files');
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('Error uploading files');
+    }
+}
+
+// Load database images
+async function loadDatabaseImages() {
+    try {
+        const response = await fetch('/api/database/list');
+        const data = await response.json();
+        
+        if (data.success) {
+            displayDatabaseImages(data.images);
+            document.getElementById('db-count').textContent = data.total;
+        }
+    } catch (error) {
+        console.error('Error loading database:', error);
+    }
+}
+
+// Display database images
+function displayDatabaseImages(images) {
+    const grid = document.getElementById('database-grid');
+    grid.innerHTML = '';
+    
+    images.forEach(image => {
+        const item = document.createElement('div');
+        item.className = 'result-item';
+        
+        item.innerHTML = `
+            <img src="/database/${image.filename}" alt="${image.filename}">
+            <div class="result-info">
+                <h4>${image.filename}</h4>
+            </div>
+        `;
+        
+        grid.appendChild(item);
+    });
+}
+
+// Load database on page load
+window.addEventListener('load', () => {
+    loadDatabaseImages();
+    checkModel2Status();
+});
+
+// Check Model II status
+async function checkModel2Status() {
+    try {
+        const response = await fetch('/api/model2/status');
+        const data = await response.json();
+        
+        if (data.success) {
+            const statusText = data.trained ? 
+                '✓ Model II is trained and ready' : 
+                '✗ Model II not trained yet';
+            
+            document.getElementById('model2-status').textContent = statusText;
+            document.getElementById('model2-status').style.color = 
+                data.trained ? '#27ae60' : '#e74c3c';
+            
+            // Enable/disable option
+            const option = document.getElementById('model2-option');
+            if (data.trained) {
+                option.disabled = false;
+            } else {
+                option.disabled = true;
+            }
+            
+            // Update Model II tab
+            updateModel2Tab(data);
+        }
+    } catch (error) {
+        console.error('Error checking Model II status:', error);
+    }
+}
+
+// Update Model II tab with status
+function updateModel2Tab(statusData) {
+    const statusDiv = document.getElementById('model2-current-status');
+    
+    if (statusData.trained) {
+        statusDiv.innerHTML = `
+            <p style="color: #27ae60; font-weight: 600;">✓ Model II is trained and ready for use</p>
+            <p>You can use class-based retrieval in the Image Search tab</p>
+        `;
+    } else {
+        statusDiv.innerHTML = `
+            <p style="color: #e74c3c; font-weight: 600;">✗ Model II not trained</p>
+            <p>Train a model below to enable class-based retrieval</p>
+        `;
+    }
+    
+    // Show available models
+    const modelsList = document.getElementById('available-models-list');
+    if (statusData.available_models && statusData.available_models.length > 0) {
+        let modelsHTML = '<ul>';
+        statusData.available_models.forEach(model => {
+            modelsHTML += `
+                <li>
+                    <strong>${model}</strong>
+                    <button onclick="loadModel2('models/${model}')" style="margin-left: 10px;">Load</button>
+                </li>
+            `;
+        });
+        modelsHTML += '</ul>';
+        modelsList.innerHTML = modelsHTML;
+    } else {
+        modelsList.innerHTML = '<p>No pre-trained models available</p>';
+    }
+}
+
+// Train Model II
+async function trainModel2() {
+    const architecture = document.getElementById('train-architecture').value;
+    const epochs = parseInt(document.getElementById('train-epochs').value);
+    const batchSize = parseInt(document.getElementById('train-batch').value);
+    const learningRate = parseFloat(document.getElementById('train-lr').value);
+    
+    if (!confirm(`Train Model II with ${architecture} for ${epochs} epochs?\nThis may take several minutes.`)) {
+        return;
+    }
+    
+    const progressDiv = document.getElementById('training-progress');
+    const progressInfo = document.getElementById('progress-info');
+    
+    progressDiv.style.display = 'block';
+    progressInfo.innerHTML = '<p>Preparing dataset...</p>';
+    
+    try {
+        // Prepare dataset
+        progressInfo.innerHTML += '<p>✓ Dataset prepared</p><p>Starting training...</p>';
+        
+        const response = await fetch('/api/model2/train', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                train_dir: 'datasets/demo_dataset/train',
+                architecture: architecture,
+                epochs: epochs,
+                batch_size: batchSize,
+                learning_rate: learningRate
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            progressInfo.innerHTML += `
+                <p style="color: #27ae60;">✓ Training completed!</p>
+                <p>Model saved to: ${data.model_path}</p>
+                <p>Number of classes: ${data.num_classes}</p>
+            `;
+            
+            if (data.history && data.history.accuracy) {
+                const finalAcc = data.history.accuracy[data.history.accuracy.length - 1];
+                progressInfo.innerHTML += `<p>Final accuracy: ${(finalAcc * 100).toFixed(2)}%</p>`;
+            }
+            
+            // Refresh status
+            setTimeout(() => {
+                checkModel2Status();
+                alert('Model II training completed! You can now use class-based retrieval.');
+            }, 1000);
+        } else {
+            progressInfo.innerHTML += `<p style="color: #e74c3c;">✗ Training failed: ${data.error}</p>`;
+            alert('Training failed: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Training error:', error);
+        progressInfo.innerHTML += `<p style="color: #e74c3c;">✗ Error: ${error.message}</p>`;
+        alert('Training error: ' + error.message);
+    }
+}
+
+// Load pre-trained Model II
+async function loadModel2(modelPath) {
+    try {
+        const response = await fetch('/api/model2/load', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model_path: modelPath
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Model II loaded successfully!');
+            checkModel2Status();
+        } else {
+            alert('Error loading model: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Load error:', error);
+        alert('Error loading model: ' + error.message);
+    }
+}
+
+</script>
